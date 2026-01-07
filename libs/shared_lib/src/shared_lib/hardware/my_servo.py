@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from typing import Mapping
 
-from robot_hat import Servo as RobotServo
+from .gpiozero_setup import ensure_lgpio_pin_factory
 
+ensure_lgpio_pin_factory()
+
+from robot_hat import Servo as RobotServo
 
 class MyServo:
     def __init__(
