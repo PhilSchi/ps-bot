@@ -22,7 +22,7 @@ class PiCarController:
 
 
 def _scale_axis(value: float) -> float:
-    percent = -value * 100.0
+    percent = value * 100.0
     if percent < -100.0:
         return -100.0
     if percent > 100.0:
