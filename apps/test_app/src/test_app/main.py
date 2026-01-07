@@ -5,11 +5,19 @@ import time
 
 from shared_lib import format_greeting
 from shared_lib.hardware import MyServo, PicarxChassis, PicarxMotor
+from test_app.robot_server_printer import RobotServerPrinter
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Test app that uses shared-lib")
     parser.add_argument("--name", default="there", help="Name to greet")
+    parser.add_argument(
+        "--robot-server",
+        action="store_true",
+        help="Run the robot socket server printer",
+    )
+    parser.add_argument("--robot-host", default="0.0.0.0", help="Server bind host")
+    parser.add_argument("--robot-port", type=int, default=9999, help="Server bind port")
     return parser
 
 def my_servo_test() -> None:
@@ -105,6 +113,16 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     print("?? Hallo ??")
+    if args.robot_server:
+        server = RobotServerPrinter(host=args.robot_host, port=args.robot_port)
+        print(f"Robot server listening on {args.robot_host}:{args.robot_port}")
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            server.stop()
+        return
     # my_servo_test()
     # my_motor_test()
     chassis_test()
