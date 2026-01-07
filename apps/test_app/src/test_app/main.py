@@ -4,7 +4,7 @@ import argparse
 import time
 
 from shared_lib import format_greeting
-from shared_lib.hardware import MyServo, PicarxMotor
+from shared_lib.hardware import MyServo, PicarxChassis, PicarxMotor
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -61,12 +61,53 @@ def my_motor_test() -> None:
     left_motor.set_percent(0.0)
     right_motor.set_percent(0.0)
 
+def chassis_test() -> None:
+    steering_servo = MyServo(
+        {
+            "channel": "P2",
+            "min_angle": -30.0,
+            "max_angle": 30.0,
+            "zero_angle": 0.0,
+            "name": "steering-servo",
+        }
+    )
+    left_motor = PicarxMotor(
+        {
+            "direction_pin": "D4",
+            "pwm_pin": "P13",
+            "forward_direction": 1,
+            "name": "left-rear",
+        }
+    )
+    right_motor = PicarxMotor(
+        {
+            "direction_pin": "D5",
+            "pwm_pin": "P12",
+            "forward_direction": -1,
+            "name": "right-rear",
+        }
+    )
+    chassis = PicarxChassis(steering_servo, left_motor, right_motor)
+    chassis.set_steering_percent(0.0)
+    chassis.set_drive_percent(100.0)
+    time.sleep(2)
+    chassis.set_steering_percent(50.0)
+    time.sleep(2)
+    chassis.set_steering_percent(100.0)
+    time.sleep(2)
+    chassis.set_steering_percent(-100.0)
+    time.sleep(2)
+    chassis.set_drive_percent(-100.0)
+    time.sleep(2)
+    chassis.set_drive_percent(0.0)
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     print("?? Hallo ??")
-    my_servo_test()
-    my_motor_test()
+    # my_servo_test()
+    # my_motor_test()
+    chassis_test()
     message = format_greeting(args.name)
     print(message)
 
