@@ -16,7 +16,7 @@ class PiCarController:
 
     def on_axis(self, index: int, value: float) -> None:
         if index == self.drive_axis:
-            self.chassis.set_drive_percent(_scale_axis(value))
+            self.chassis.set_drive_percent(_scale_axis(-value))
         elif index == self.steer_axis:
             self.chassis.set_steering_percent(_scale_axis(value))
 
