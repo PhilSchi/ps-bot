@@ -19,9 +19,9 @@ def build_chassis() -> PicarxChassis:
     steering_servo = MyServo(
         {
             "channel": "P2",
-            "min_angle": -30.0,
-            "max_angle": 30.0,
-            "zero_angle": 0.0,
+            "min_angle": -41.0,
+            "max_angle": 19.0,
+            "zero_angle": -11.0,
             "name": "steering-servo",
         }
     )
