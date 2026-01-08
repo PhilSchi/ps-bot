@@ -63,7 +63,7 @@ def main() -> None:
 
     print(
         "Pi car server listening on "
-        f"{args.host}:{args.port} (drive axis=3, steer axis=4)"
+        f"{args.host}:{args.port} (drive axis=4, steer axis=3)"
     )
     server_thread = threading.Thread(
         target=server.serve_forever,
