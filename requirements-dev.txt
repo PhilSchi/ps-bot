@@ -3,3 +3,4 @@
 -e third_party/robot-hat
 lgpio
 pytest
+vilib @ git+https://github.com/sunfounder/vilib

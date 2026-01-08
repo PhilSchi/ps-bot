@@ -11,8 +11,12 @@ This repo is organized as a small monorepo with a shared library and multiple ap
 
 ```bash
 python -m venv .venv
+//For picamera2
+python3 -m venv .venv --system-site-packages
 source .venv/bin/activate
 pip install -r requirements-dev.txt
+
+deactivate
 ```
 
 ## robot-hat prerequisites (vendored)

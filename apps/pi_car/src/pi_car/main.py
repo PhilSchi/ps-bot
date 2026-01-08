@@ -6,6 +6,7 @@ import threading
 from shared_lib.hardware import MyServo, PicarxChassis, PicarxMotor
 from shared_lib.networking.robot_server import RobotSocketServer
 
+from pi_car.camera import PiCarCameraServer
 from pi_car.controller import DesiredDriveState, DesiredStateUpdater, PiCarController
 
 
@@ -13,6 +14,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Pi car controller server")
     parser.add_argument("--host", default="0.0.0.0", help="Server bind host")
     parser.add_argument("--port", type=int, default=9999, help="Server bind port")
+    parser.add_argument(
+        "--no-camera",
+        action="store_true",
+        help="Disable the camera streaming thread",
+    )
     return parser
 
 
@@ -53,6 +59,7 @@ def main() -> None:
     controller = PiCarController(chassis, desired_state)
     updater = DesiredStateUpdater(desired_state)
     server = RobotSocketServer(args.host, args.port, on_axis=updater.on_axis)
+    camera = PiCarCameraServer(on_axis=updater.on_axis)
 
     print(
         "Pi car server listening on "
@@ -68,18 +75,31 @@ def main() -> None:
     )
     server_thread.start()
     controller_thread.start()
+    camera_thread: threading.Thread | None = None
+    if not args.no_camera:
+        camera_thread = threading.Thread(
+            target=camera.serve_forever,
+            name="pi-car-camera",
+        )
+        camera_thread.start()
 
     try:
-        while server_thread.is_alive() and controller_thread.is_alive():
-            server_thread.join(timeout=0.5)
-            controller_thread.join(timeout=0.5)
+        threads = [server_thread, controller_thread]
+        if camera_thread is not None:
+            threads.append(camera_thread)
+        while all(thread.is_alive() for thread in threads):
+            for thread in threads:
+                thread.join(timeout=0.5)
     except KeyboardInterrupt:
         pass
     finally:
         server.stop()
         controller.stop()
+        camera.stop()
         server_thread.join()
         controller_thread.join()
+        if camera_thread is not None:
+            camera_thread.join()
         chassis.stop()
 
 
