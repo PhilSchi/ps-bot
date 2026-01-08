@@ -13,3 +13,7 @@ class Chassis(Protocol):
     def set_drive_percent(self, percent: float) -> None:
         """Set drive in the range [-100.0, 100.0]; positive drives forward."""
         ...
+
+    def stop(self) -> None:
+        """Stop the drive motors and center steering."""
+        ...

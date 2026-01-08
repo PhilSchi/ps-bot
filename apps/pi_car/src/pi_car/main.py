@@ -61,6 +61,7 @@ def main() -> None:
         pass
     finally:
         server.stop()
+        chassis.stop()
 
 
 if __name__ == "__main__":

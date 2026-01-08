@@ -29,6 +29,12 @@ class PicarxChassis(Chassis):
         self._drive_percent = self._clamp_percent(percent)
         self._apply_drive()
 
+    def stop(self) -> None:
+        self._drive_percent = 0.0
+        self._steering_percent = 0.0
+        self._steering_servo.set_percent(self._steering_percent)
+        self._apply_drive()
+
     @staticmethod
     def _clamp_percent(percent: float) -> float:
         return max(-100.0, min(100.0, float(percent)))
