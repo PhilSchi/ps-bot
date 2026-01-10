@@ -1,6 +1,6 @@
 # ps-bot
 
-This repo is organized as a small monorepo with a shared library and multiple apps.
+Project for experimenting with Raspberry Pi Robot cars, using the SunFounder Robot HAT Expansion Board. Remotecontrol with game controller.
 
 ## Layout
 
