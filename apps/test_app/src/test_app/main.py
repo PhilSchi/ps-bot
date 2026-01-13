@@ -4,7 +4,7 @@ import argparse
 import time
 
 from shared_lib import format_greeting
-from shared_lib.hardware import MyServo, PicarxChassis, PicarxMotor
+from shared_lib.hardware import PicarxChassis, PicarxMotor, RoboHatServo
 from test_app.robot_server_printer import RobotServerPrinter
 
 
@@ -21,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 def my_servo_test() -> None:
-    servo0 = MyServo(
+    servo0 = RoboHatServo(
         {
             "channel": "P0",
             "min_angle": -90.0,
@@ -70,7 +70,7 @@ def my_motor_test() -> None:
     right_motor.set_percent(0.0)
 
 def chassis_test() -> None:
-    steering_servo = MyServo(
+    steering_servo = RoboHatServo(
         {
             "channel": "P2",
             "min_angle": -30.0,

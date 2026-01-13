@@ -2,5 +2,6 @@
 -e apps/test_app
 -e third_party/robot-hat
 lgpio
+pyaudio
 pytest
 vilib @ git+https://github.com/sunfounder/vilib

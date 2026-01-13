@@ -19,11 +19,11 @@ class DummyServo:
 fake_robot_hat.Servo = DummyServo
 sys.modules.setdefault("robot_hat", fake_robot_hat)
 
-from shared_lib.hardware import MyServo  # noqa: E402
+from shared_lib.hardware import RoboHatServo  # noqa: E402
 
 
 def test_set_angle_validates_and_forwards() -> None:
-    servo = MyServo(
+    servo = RoboHatServo(
         {
             "channel": "P0",
             "min_angle": -90.0,

@@ -1,0 +1,49 @@
+
+[build-system]
+requires = ["setuptools >= 61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fusion_hat"
+authors = [
+  { name="sunfounder", email="service@sunfounder.com" },
+]
+description = "Fusion Hat Python library for Raspberry Pi"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+keywords = ["fusion_hat", "sunfounder"]
+dynamic = ["version"]
+
+dependencies = [
+  "sunfounder-voice-assistant @ git+https://github.com/sunfounder/sunfounder-voice-assistant.git",
+  "evdev",
+  "smbus2",
+  "gpiozero",
+  "pyaudio",
+  "spidev",
+  "pyserial",
+  "pillow",
+  "pygame",
+  "luma.led_matrix",
+  "luma.core",
+]
+
+[project.scripts]
+fusion_hat = "fusion_hat._cli:main"
+
+[project.urls]
+Repository = "https://github.com/sunfounder/fusion-hat/"
+Issues = "https://github.com/sunfounder/fusion-hat/issues"
+
+[tool.setuptools.packages.find]
+include = ["fusion_hat*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "fusion_hat._version.__version__"}
+
+

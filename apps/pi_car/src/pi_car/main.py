@@ -3,11 +3,12 @@ from __future__ import annotations
 import argparse
 import threading
 
-from shared_lib.hardware import Gimbal, MyServo, PicarxChassis, PicarxMotor
+from shared_lib.hardware import Gimbal, PicarxChassis, PicarxMotor, RoboHatServo
 from shared_lib.networking.robot_server import RobotSocketServer
 
 from pi_car.camera import PiCarCameraServer
-from pi_car.controller import DesiredDriveState, DesiredStateUpdater, PiCarController
+from pi_car.controller import PiCarController
+from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_chassis() -> PicarxChassis:
-    steering_servo = MyServo(
+    steering_servo = RoboHatServo(
         {
             "channel": "P2",
             "min_angle": -41.0,
@@ -52,7 +53,7 @@ def build_chassis() -> PicarxChassis:
 
 
 def build_gimbal() -> Gimbal:
-    pan_servo = MyServo(
+    pan_servo = RoboHatServo(
         {
             "channel": "P0",
             "min_angle": -90.0,
@@ -61,7 +62,7 @@ def build_gimbal() -> Gimbal:
             "name": "camera-pan-servo",
         }
     )
-    tilt_servo = MyServo(
+    tilt_servo = RoboHatServo(
         {
             "channel": "P1",
             "min_angle": -35.0,

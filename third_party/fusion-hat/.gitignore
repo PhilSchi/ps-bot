@@ -1,0 +1,7 @@
+.vscode/*
+.DS_store
+docs/build
+__pycache__
+bk/
+backup/
+*secret*

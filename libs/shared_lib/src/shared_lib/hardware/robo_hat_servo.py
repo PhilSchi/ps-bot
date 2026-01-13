@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import Mapping
 
 from .gpiozero_setup import ensure_lgpio_pin_factory
+from .servo import Servo
 
 ensure_lgpio_pin_factory()
 
 from robot_hat import Servo as RobotServo
 
-class MyServo:
+class RoboHatServo(Servo):
     def __init__(
         self,
         config: Mapping[str, object],

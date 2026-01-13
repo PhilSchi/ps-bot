@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from .actuator import Actuator
 from .chassis import Chassis
-from .my_servo import MyServo
-from .picarx_motor import PicarxMotor
+from .servo import Servo
 
 
 class PicarxChassis(Chassis):
@@ -10,9 +10,9 @@ class PicarxChassis(Chassis):
 
     def __init__(
         self,
-        steering_servo: MyServo,
-        left_motor: PicarxMotor,
-        right_motor: PicarxMotor,
+        steering_servo: Servo,
+        left_motor: Actuator,
+        right_motor: Actuator,
     ) -> None:
         self._steering_servo = steering_servo
         self._left_motor = left_motor

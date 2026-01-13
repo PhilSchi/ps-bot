@@ -102,6 +102,8 @@ class RobotSocketServer:
                 chunk = client.recv(1024)
             except socket.timeout:
                 continue
+            except OSError:
+                break
 
             if not chunk:
                 break

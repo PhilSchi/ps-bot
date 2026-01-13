@@ -9,6 +9,9 @@ Project for experimenting with Raspberry Pi Robot cars, using the SunFounder Rob
 
 ## Setup (pip + venv)
 
+sudo apt-get install portaudio19-dev
+sudo apt install python3-picamera2
+
 ```bash
 python -m venv .venv
 //For picamera2
@@ -18,6 +21,8 @@ pip install -r requirements-dev.txt
 
 deactivate
 ```
+
+Note: `pyaudio` requires the system package `portaudio19-dev` before installing into the venv.
 
 ## robot-hat prerequisites (vendored)
 
