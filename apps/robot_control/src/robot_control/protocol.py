@@ -3,13 +3,37 @@
 from __future__ import annotations
 
 import struct
+from typing import NamedTuple
 
 TYPE_BUTTON = 0
 TYPE_AXIS = 1
 TYPE_HAT = 2
+TYPE_TELEMETRY = 0x10
 
 AXIS_SCALE = 1000
 FRAME_STRUCT = struct.Struct(">BBh")
+TELEMETRY_STRUCT = struct.Struct(">Bffffff")  # type + 6 floats = 25 bytes
+
+
+class TelemetryData(NamedTuple):
+    speed: float
+    steering: float
+    pan: float
+    tilt: float
+    battery_v: float
+    cpu_temp: float
+
+
+def decode_telemetry(data: bytes) -> TelemetryData | None:
+    """Decode a 25-byte telemetry frame. Returns None if invalid."""
+    if len(data) < TELEMETRY_STRUCT.size:
+        return None
+    if data[0] != TYPE_TELEMETRY:
+        return None
+    _, speed, steering, pan, tilt, battery_v, cpu_temp = TELEMETRY_STRUCT.unpack(
+        data[: TELEMETRY_STRUCT.size]
+    )
+    return TelemetryData(speed, steering, pan, tilt, battery_v, cpu_temp)
 
 
 def encode_axis(index: int, value: float) -> bytes:

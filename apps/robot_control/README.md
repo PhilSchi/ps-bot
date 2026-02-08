@@ -8,13 +8,15 @@ input via pygame and streams it to a robot socket server over TCP.
 ```bash
 robot-control --host 192.168.0.10 --port 9000
 robot-control --host merkur.local --port 9000
-robot-control --no-print  # suppress controller event output
 ```
 
 The last host/port are remembered in `settings.json` and used as defaults on
 the next run.
 
 Pair your Bluetooth controller in the OS before running.
+
+Telemetrie-Daten vom Roboter (Speed, Steering, Pan, Tilt, Batterie, CPU-Temp)
+werden live als Inline-Ausgabe angezeigt.
 
 ## Protocol
 
