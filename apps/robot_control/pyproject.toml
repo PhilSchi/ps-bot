@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robot-control"
+version = "0.1.0"
+description = "Gamepad remote control client that streams controller input to a robot server"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "ps-bot"}]
+dependencies = ["pygame>=2.5"]
+
+[project.scripts]
+robot-control = "robot_control.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

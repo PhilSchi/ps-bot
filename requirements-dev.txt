@@ -1,5 +1,6 @@
 -e libs/shared_lib
 -e apps/test_app
+-e apps/robot_control
 -e third_party/robot-hat
 lgpio
 pyaudio

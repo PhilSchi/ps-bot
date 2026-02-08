@@ -21,6 +21,7 @@ crawler --host 0.0.0.0 --port 9000        # Single-motor crawler
 pi-car --host 0.0.0.0 --port 9999         # Two-motor picarx with camera
 pi-car --host 0.0.0.0 --port 9999 --no-camera  # Without camera stream
 zero-servo --channel P0                    # Interactive servo calibration
+robot-control --host <pi-ip> --port 9000   # Gamepad remote control (Mac/PC)
 ```
 
 ### Testing
@@ -61,6 +62,7 @@ Physical Hardware (GPIO/I2C/SPI)
 
 - **crawler**: Single motor + steering servo using Fusion HAT
 - **pi_car**: Two rear motors + steering servo + camera gimbal using Robot HAT, camera stream via Vilib on port 9000
+- **robot_control**: Gamepad remote control client (runs on Mac/PC, not on Pi). Uses pygame for Bluetooth controller input, sends binary frames to a robot socket server over TCP
 - **zero_servo**: Interactive CLI for finding servo center angles
 
 ### Hardware Protocol Pattern

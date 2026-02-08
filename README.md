@@ -5,6 +5,10 @@ Project for experimenting with Raspberry Pi Robot cars, using the SunFounder Rob
 ## Layout
 
 - `libs/shared_lib`: reusable code that apps import
+- `apps/crawler`: single-motor crawler chassis control (runs on Pi)
+- `apps/pi_car`: two-motor Picarx with camera gimbal (runs on Pi)
+- `apps/robot_control`: gamepad remote control client (runs on Mac/PC)
+- `apps/zero_servo`: interactive servo calibration tool (runs on Pi)
 - `apps/test_app`: example app that uses `shared_lib`
 
 ## Setup (pip + venv)
