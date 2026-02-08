@@ -8,6 +8,14 @@ from fusion_hat.motor import Motor as FusionHatMotor
 
 
 class FusionMotor(Actuator):
+    """Motor actuator for Fusion HAT.
+
+    Config keys:
+        factor: float (-1.0 to 1.0, default 1.0) – scales and/or reverses
+            the input percentage.  A factor of -1 reverses direction,
+            0.5 halves the speed, -0.5 reverses at half speed, etc.
+    """
+
     def __init__(
         self,
         config: Mapping[str, object],
@@ -20,12 +28,12 @@ class FusionMotor(Actuator):
         freq = config.get("freq")
         max_power = config.get("max")
         min_power = config.get("min")
-        is_reversed = config.get("is_reversed", False)
+        self._factor = max(-1.0, min(1.0, float(config.get("factor", 1.0))))
 
         if motor_cls is None:
             motor_cls = FusionHatMotor
 
-        motor_kwargs: dict[str, object] = {"is_reversed": bool(is_reversed)}
+        motor_kwargs: dict[str, object] = {}
         if freq is not None:
             motor_kwargs["freq"] = int(freq)
         if max_power is not None:
@@ -43,6 +51,6 @@ class FusionMotor(Actuator):
             raise ValueError("config must include 'motor' or both 'pwm_a' and 'pwm_b'")
 
     def set_percent(self, percent: float) -> None:
-        percent = max(-100.0, min(100.0, float(percent)))
+        percent = max(-100.0, min(100.0, float(percent))) * self._factor
         self._motor.power(percent)
 

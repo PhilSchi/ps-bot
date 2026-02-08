@@ -42,7 +42,7 @@ def build_chassis() -> SingleMotorChassis:
         {
             "motor": "M0",
             "name": "drive",
-            "is_reversed": True
+            "factor": -0.5,
         }
     )
     return SingleMotorChassis(steering_servo, drive_motor)
