@@ -2,6 +2,7 @@
 -e apps/test_app
 -e apps/robot_control
 -e third_party/robot-hat
+ai-edge-litert
 lgpio
 pyaudio
 pytest

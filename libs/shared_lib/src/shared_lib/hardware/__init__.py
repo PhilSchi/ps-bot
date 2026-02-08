@@ -9,7 +9,7 @@ from .fusion_motor import FusionMotor
 from .servo import Servo
 from .fusion_servo import FusionServo
 from .single_motor_chassis import SingleMotorChassis
-from .vilib_camera import VilibCameraServer
+from .vilib_camera import CameraModule, VilibCameraServer
 from .telemetry import BaseTelemetry
 from .fusion_telemetry import FusionTelemetry
 from .robo_hat_telemetry import RoboHatTelemetry
@@ -17,6 +17,7 @@ from .robo_hat_telemetry import RoboHatTelemetry
 __all__ = [
     "Actuator",
     "BaseTelemetry",
+    "CameraModule",
     "Chassis",
     "PicarxChassis",
     "FusionTelemetry",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import threading
 
+from shared_lib.detection import PersonDetector
 from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
 from shared_lib.hardware import FusionMotor, FusionServo, FusionTelemetry, SingleMotorChassis, VilibCameraServer
 from shared_lib.networking import RobotSocketServer, TelemetryStreamer
@@ -56,7 +57,8 @@ def main() -> None:
     controller = CrawlerController(chassis, desired_state)
     updater = DesiredStateUpdater(desired_state)
     server = RobotSocketServer(args.host, args.port, on_axis=updater.on_axis)
-    camera = VilibCameraServer(vflip=True, hflip=True)
+    detector = PersonDetector(desired_state=desired_state)
+    camera = VilibCameraServer(vflip=True, hflip=True, modules=[detector])
 
     telemetry_streamer: TelemetryStreamer | None = None
     if not args.no_telemetry:
