@@ -67,6 +67,14 @@ class BluetoothGameController:
             rounded = [round(value, 3) for value in self._axis_zero]
             print(f"Axis centers: {rounded}")
 
+    def poll(self) -> None:
+        """Process one round of controller events (non-blocking)."""
+        if self._pygame is None or self._joystick is None:
+            self.connect()
+        assert self._pygame is not None
+        self._pygame.event.pump()
+        self._poll_state()
+
     def run(self) -> None:
         """Print controller inputs until interrupted."""
         if self._pygame is None or self._joystick is None:
