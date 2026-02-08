@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from .robo_hat_servo import RoboHatServo
+from .servo import Servo
 
 
 class Gimbal:
     """Pan/tilt gimbal controlled by two servos."""
 
-    def __init__(self, pan_servo: RoboHatServo, tilt_servo: RoboHatServo) -> None:
+    def __init__(self, pan_servo: Servo, tilt_servo: Servo) -> None:
         self._pan_servo = pan_servo
         self._tilt_servo = tilt_servo
         self._pan_percent = 0.0

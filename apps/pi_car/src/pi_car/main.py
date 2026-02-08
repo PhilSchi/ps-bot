@@ -3,10 +3,8 @@ from __future__ import annotations
 import argparse
 import threading
 
-from shared_lib.hardware import Gimbal, PicarxChassis, PicarxMotor, RoboHatServo
-from shared_lib.networking.robot_server import RobotSocketServer
-
-from pi_car.camera import PiCarCameraServer
+from shared_lib.hardware import Gimbal, PicarxChassis, PicarxMotor, RoboHatServo, RoboHatTelemetry, VilibCameraServer
+from shared_lib.networking import RobotSocketServer, TelemetryStreamer
 from pi_car.controller import PiCarController
 from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
 
@@ -19,6 +17,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-camera",
         action="store_true",
         help="Disable the camera streaming thread",
+    )
+    parser.add_argument(
+        "--no-telemetry",
+        action="store_true",
+        help="Disable telemetry streaming to connected client",
     )
     return parser
 
@@ -83,12 +86,23 @@ def main() -> None:
     controller = PiCarController(chassis, desired_state, gimbal=gimbal)
     updater = DesiredStateUpdater(desired_state)
     server = RobotSocketServer(args.host, args.port, on_axis=updater.on_axis)
-    camera = PiCarCameraServer(on_axis=updater.on_axis)
+    camera = VilibCameraServer()
+
+    telemetry_streamer: TelemetryStreamer | None = None
+    if not args.no_telemetry:
+        telemetry_source = RoboHatTelemetry(desired_state)
+        telemetry_streamer = TelemetryStreamer(
+            server=server,
+            source=telemetry_source,
+            rate_hz=5.0,
+        )
 
     print(
         "Pi car server listening on "
         f"{args.host}:{args.port} (drive axis=4, steer axis=3, pan axis=0, tilt axis=1)"
     )
+    if telemetry_streamer:
+        print("Telemetry streaming enabled at 5 Hz")
     server_thread = threading.Thread(
         target=server.serve_forever,
         name="robot-socket-server",
@@ -106,6 +120,8 @@ def main() -> None:
             name="pi-car-camera",
         )
         camera_thread.start()
+    if telemetry_streamer:
+        telemetry_streamer.start()
 
     try:
         threads = [server_thread, controller_thread]
@@ -120,6 +136,8 @@ def main() -> None:
         server.stop()
         controller.stop()
         camera.stop()
+        if telemetry_streamer:
+            telemetry_streamer.stop()
         server_thread.join()
         controller_thread.join()
         if camera_thread is not None:

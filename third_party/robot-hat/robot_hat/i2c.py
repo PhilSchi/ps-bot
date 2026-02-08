@@ -145,9 +145,15 @@ class I2C(_Basic_class):
             # Split the addresses into a list
             tmp_addresses = tmp_addresses.strip().split(' ')
             for address in tmp_addresses:
-                if address != '--':
-                    addresses.append(int(address, 16))
-                    addresses_str.append(f'0x{address}')
+                if address == '--':
+                    continue
+                # "UU" means the address is in use by a kernel driver.
+                try:
+                    address_int = int(address, 16)
+                except ValueError:
+                    continue
+                addresses.append(address_int)
+                addresses_str.append(f'0x{address}')
         self._debug(f"Conneceted i2c device: {addresses_str}")
         return addresses
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from shared_lib.hardware import RoboHatServo
+from shared_lib.hardware import FusionServo, RoboHatServo
 
 HELP_TEXT = """Commands:
   + / -        nudge by the current step
@@ -50,6 +50,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="zero-servo",
         help="Servo name for logging (default: zero-servo)",
     )
+    parser.add_argument(
+        "--servo",
+        choices=("fusion", "robohat"),
+        default="fusion",
+        help="Servo implementation to use (default: fusion)",
+    )
     return parser
 
 
@@ -65,7 +71,9 @@ def format_angle(angle: float) -> str:
     return f"{angle:.2f}"
 
 
-def print_banner(servo: RoboHatServo, step: float, current_angle: float) -> None:
+def print_banner(
+    servo: FusionServo | RoboHatServo, step: float, current_angle: float
+) -> None:
     print("Zero servo helper")
     print(
         f"Channel: {servo.channel}  Range: {servo.min_angle}..{servo.max_angle}"
@@ -75,7 +83,9 @@ def print_banner(servo: RoboHatServo, step: float, current_angle: float) -> None
     print(f"Angle: {format_angle(current_angle)}")
 
 
-def interactive_loop(servo: RoboHatServo, start_angle: float, step: float) -> float:
+def interactive_loop(
+    servo: FusionServo | RoboHatServo, start_angle: float, step: float
+) -> float:
     if step <= 0.0:
         raise ValueError("step must be greater than zero")
 
@@ -173,7 +183,8 @@ def main() -> None:
     if not (args.min_angle <= args.start_angle <= args.max_angle):
         parser.error("--start-angle must be between --min-angle and --max-angle")
 
-    servo = RoboHatServo(
+    servo_cls = FusionServo if args.servo == "fusion" else RoboHatServo
+    servo = servo_cls(
         {
             "channel": args.channel,
             "min_angle": args.min_angle,

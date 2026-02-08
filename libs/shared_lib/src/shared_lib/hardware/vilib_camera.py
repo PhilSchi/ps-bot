@@ -5,14 +5,11 @@ import threading
 import time
 from typing import Any
 
-from shared_lib.networking.robot_server import AxisHandler
-
 
 @dataclass
-class PiCarCameraServer:
-    """Manages camera streaming for the Pi car."""
+class VilibCameraServer:
+    """Manages camera streaming using SunFounder's Vilib library."""
 
-    on_axis: AxisHandler | None = None
     vflip: bool = False
     hflip: bool = False
     local_display: bool = False

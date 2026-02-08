@@ -6,14 +6,24 @@ from dataclasses import dataclass, field
 import socket
 import struct
 import threading
-from typing import Callable
+from typing import Callable, Protocol
 
 TYPE_BUTTON = 0
 TYPE_AXIS = 1
 TYPE_HAT = 2
+TYPE_TELEMETRY = 0x10
 
 AXIS_SCALE = 1000
 FRAME_STRUCT = struct.Struct(">BBh")
+TELEMETRY_STRUCT = struct.Struct(">Bffffff")  # type + 6 floats
+
+
+class TelemetrySource(Protocol):
+    """Protocol for objects that provide telemetry data."""
+
+    def get_telemetry(self) -> dict[str, float]:
+        """Return current telemetry values."""
+        ...
 
 AxisHandler = Callable[[int, float], None]
 ButtonHandler = Callable[[int, bool], None]
@@ -92,6 +102,35 @@ class RobotSocketServer:
             finally:
                 if self._socket is sock:
                     self._socket = None
+
+    @property
+    def has_client(self) -> bool:
+        """Return True if a client is currently connected."""
+        return self._client is not None
+
+    def send_telemetry(self, data: dict[str, float]) -> bool:
+        """Send telemetry data to the connected client.
+
+        Returns True if data was sent, False if no client connected.
+        """
+        client = self._client
+        if client is None:
+            return False
+
+        frame = TELEMETRY_STRUCT.pack(
+            TYPE_TELEMETRY,
+            data.get("speed", 0.0),
+            data.get("steering", 0.0),
+            data.get("pan", 0.0),
+            data.get("tilt", 0.0),
+            data.get("battery_v", 0.0),
+            data.get("cpu_temp", 0.0),
+        )
+        try:
+            client.sendall(frame)
+            return True
+        except OSError:
+            return False
 
     def _serve_client(self, client: socket.socket) -> None:
         buffer = bytearray()

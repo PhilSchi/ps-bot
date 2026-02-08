@@ -20,6 +20,7 @@ class RoboHatServo(Servo):
         self.min_angle = float(config["min_angle"])
         self.max_angle = float(config["max_angle"])
         self.zero_angle = float(config["zero_angle"])
+        self.reverse = bool(config.get("reverse", False))
 
         if self.min_angle >= self.max_angle:
             raise ValueError("min_angle must be less than max_angle")
@@ -34,10 +35,11 @@ class RoboHatServo(Servo):
         if percent < -100.0 or percent > 100.0:
             raise ValueError("percent must be between -100 and 100")
 
-        if percent >= 0.0:
-            return self.zero_angle + (percent / 100.0) * (self.max_angle - self.zero_angle)
+        if self.reverse:
+            percent = -percent
 
-        return self.zero_angle + (percent / 100.0) * (self.zero_angle - self.min_angle)
+        half_range = (self.max_angle - self.min_angle) / 2.0
+        return self.zero_angle + (percent / 100.0) * half_range
 
     def set_angle(self, angle: float) -> None:
         angle = float(angle)
