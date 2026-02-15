@@ -7,8 +7,11 @@ from shared_lib.detection import PersonDetector
 from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
 from shared_lib.hardware import FusionMotor, FusionServo, FusionTelemetry, SingleMotorChassis, VilibCameraServer
 from shared_lib.networking import RobotSocketServer, TelemetryStreamer
+from shared_lib.pid import PIDController
+from shared_lib.tracking import TargetFollower
 
 from crawler.controller import CrawlerController
+from crawler.follow_coordinator import PersonFollowCoordinator
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -55,9 +58,25 @@ def main() -> None:
     chassis = build_chassis()
     desired_state = DesiredDriveState()
     controller = CrawlerController(chassis, desired_state)
-    updater = DesiredStateUpdater(desired_state)
-    server = RobotSocketServer(args.host, args.port, on_axis=updater.on_axis)
     detector = PersonDetector(desired_state=desired_state)
+
+    pid = PIDController(kp=80.0, ki=5.0, kd=10.0, integral_limit=100.0)
+    follower = TargetFollower(pid=pid, drive_speed=30.0)
+    follow_coordinator = PersonFollowCoordinator(
+        detector=detector,
+        follower=follower,
+        desired_state=desired_state,
+    )
+
+    updater = DesiredStateUpdater(
+        desired_state, on_manual_input=follow_coordinator.on_manual_input
+    )
+    server = RobotSocketServer(
+        args.host,
+        args.port,
+        on_axis=updater.on_axis,
+        on_button=follow_coordinator.on_button,
+    )
     camera = VilibCameraServer(vflip=True, hflip=True, modules=[detector])
 
     telemetry_streamer: TelemetryStreamer | None = None
@@ -75,6 +94,7 @@ def main() -> None:
     )
     if telemetry_streamer:
         print("Telemetry streaming enabled at 5 Hz")
+    follow_coordinator.start()
     server_thread = threading.Thread(
         target=server.serve_forever,
         name="robot-socket-server",
@@ -105,6 +125,7 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
     finally:
+        follow_coordinator.stop()
         server.stop()
         controller.stop()
         camera.stop()

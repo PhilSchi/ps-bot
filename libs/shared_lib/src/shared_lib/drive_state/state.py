@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import math
 import threading
+from typing import Callable
 
 DRIVE_AXIS = 4
 STEER_AXIS = 3
@@ -51,6 +52,7 @@ class DesiredStateUpdater:
     steer_axis: int = STEER_AXIS
     pan_axis: int = PAN_AXIS
     tilt_axis: int = TILT_AXIS
+    on_manual_input: Callable[[], None] | None = None
 
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _raw_drive: float = 0.0
@@ -63,11 +65,14 @@ class DesiredStateUpdater:
         if abs(value) < 0.05:
             value = 0.0
 
+        is_drive_or_steer = False
         with self._lock:
             if index == self.drive_axis:
                 self._raw_drive = -value  # dein Vorzeichen beibehalten
+                is_drive_or_steer = True
             elif index == self.steer_axis:
                 self._raw_steer = value
+                is_drive_or_steer = True
             elif index == self.pan_axis:
                 self._raw_pan = value
             elif index == self.tilt_axis:
@@ -79,6 +84,9 @@ class DesiredStateUpdater:
             steer = self._raw_steer
             pan = self._raw_pan
             tilt = self._raw_tilt
+
+        if is_drive_or_steer and value != 0.0 and self.on_manual_input is not None:
+            self.on_manual_input()
 
         self.desired_state.set_drive_percent(scale_axis(drive))
         self.desired_state.set_steer_percent(scale_axis(steer))

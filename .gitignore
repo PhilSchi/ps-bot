@@ -27,3 +27,6 @@ htmlcov/
 
 # Runtime settings
 settings.json
+
+# Downloaded ML models
+libs/shared_lib/src/shared_lib/detection/models/
