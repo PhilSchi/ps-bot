@@ -74,10 +74,10 @@ def main() -> None:
     controller = CrawlerController(chassis, desired_state, pan_mount)
     detector = PersonDetector(desired_state=desired_state)
 
-    camera_pid = PIDController(kp=50.0, ki=3.0, kd=12.0, integral_limit=75.0)
+    camera_pid = PIDController(kp=5.0, ki=0.3, kd=1.5, integral_limit=30.0)
     pan_tracker = PanTracker(pid=camera_pid)
 
-    steer_pid = PIDController(kp=60.0, ki=2.0, kd=10.0, integral_limit=75.0)
+    steer_pid = PIDController(kp=120.0, ki=2.0, kd=12.0, integral_limit=40.0)
     follower = TargetFollower(pid=steer_pid)
 
     follow_coordinator = PersonFollowCoordinator(

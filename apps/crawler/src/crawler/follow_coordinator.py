@@ -21,8 +21,12 @@ class PersonFollowCoordinator:
     base_drive_speed: float = 100.0
     drive_exponent: float = 1.0
     update_hz: float = 20.0
+    scan_speed: float = 50.0
 
     _active: bool = field(default=False, init=False, repr=False)
+    _scanning: bool = field(default=False, init=False, repr=False)
+    _scan_position: float = field(default=0.0, init=False, repr=False)
+    _scan_direction: float = field(default=1.0, init=False, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
     _stop_event: threading.Event = field(
         default_factory=threading.Event, init=False, repr=False
@@ -45,6 +49,7 @@ class PersonFollowCoordinator:
         if now_active:
             print("Person following: ON")
         else:
+            self._reset_scan()
             self.pan_tracker.reset()
             self.follower.reset()
             self.desired_state.set_drive_percent(0.0)
@@ -57,6 +62,7 @@ class PersonFollowCoordinator:
             if not self._active:
                 return
             self._active = False
+        self._reset_scan()
         self.pan_tracker.reset()
         self.follower.reset()
         self.desired_state.set_pan_percent(0.0)
@@ -90,24 +96,49 @@ class PersonFollowCoordinator:
 
         detections = self.detector.detections
         if not detections:
+            if not self._scanning:
+                # Entering scan: start from current tracker position
+                self._scan_position = self.pan_tracker._position
+                self._scanning = True
+            self._advance_scan()
+            self.desired_state.set_pan_percent(self._scan_position)
             self.desired_state.set_drive_percent(0.0)
             self.desired_state.set_steer_percent(0.0)
-            self.desired_state.set_pan_percent(0.0)
             return
+
+        if self._scanning:
+            self.pan_tracker.reset(position=self._scan_position)
+            self.follower.reset()
+            self._reset_scan()
 
         # Pick the largest detection (by area)
         best = max(detections, key=lambda d: d.w * d.h)
         center_x = best.x + best.w / 2.0
-        deviation = (center_x - 0.5) * 2.0
+        deviation = (0.5 - center_x) * 2.0
 
         # Stage 1: camera pan tracks person in image
         pan_percent = self.pan_tracker.update(deviation)
         self.desired_state.set_pan_percent(pan_percent)
 
         # Stage 2: steering follows camera direction
-        steer, _ = self.follower.update(pan_percent / 100.0)
+        steer, _ = self.follower.update(-pan_percent / 100.0)
         self.desired_state.set_steer_percent(steer)
 
         # Drive: reduce speed when camera is panned far
         drive = self.base_drive_speed * (1.0 - abs(pan_percent) / 100.0) ** self.drive_exponent
         self.desired_state.set_drive_percent(drive)
+
+    def _advance_scan(self) -> None:
+        step = self.scan_speed / self.update_hz * self._scan_direction
+        self._scan_position += step
+        if self._scan_position >= 100.0:
+            self._scan_position = 100.0
+            self._scan_direction = -1.0
+        elif self._scan_position <= -100.0:
+            self._scan_position = -100.0
+            self._scan_direction = 1.0
+
+    def _reset_scan(self) -> None:
+        self._scan_position = 0.0
+        self._scan_direction = 1.0
+        self._scanning = False

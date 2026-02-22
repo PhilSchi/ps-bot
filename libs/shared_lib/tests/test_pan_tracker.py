@@ -44,3 +44,23 @@ def test_reset_clears_pid_state() -> None:
     tracker.reset()
     assert pid._integral == 0.0
     assert pid._prev_time is None
+    assert tracker._position == 0.0
+
+
+def test_position_accumulates() -> None:
+    """When deviation stays positive, position keeps increasing."""
+    pid = PIDController(kp=10.0)
+    tracker = PanTracker(pid=pid)
+    p1 = tracker.update(0.5)
+    p2 = tracker.update(0.5)
+    assert p2 > p1 > 0
+
+
+def test_position_holds_when_deviation_zero() -> None:
+    """Once a position is reached, deviation=0 should keep it stable."""
+    pid = PIDController(kp=10.0)
+    tracker = PanTracker(pid=pid)
+    tracker.update(0.5)  # move right
+    pos_before = tracker.update(0.5)
+    pos_after = tracker.update(0.0)  # target centred
+    assert pos_after == pos_before  # position unchanged

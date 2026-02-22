@@ -86,20 +86,19 @@ def test_tick_with_detection_sets_pan_steer_drive() -> None:
     assert drive < 100.0  # drive reduced because camera is panned
 
 
-def test_tick_without_detection_stops() -> None:
+def test_tick_without_detection_scans() -> None:
     coord = _make_coordinator()
     coord.on_button(BUTTON_A, True)
 
     # Set some previous movement
     coord.desired_state.set_drive_percent(50.0)
     coord.desired_state.set_steer_percent(30.0)
-    coord.desired_state.set_pan_percent(20.0)
 
     coord._tick()
     drive, steer, pan, _ = coord.desired_state.snapshot()
     assert drive == 0.0
     assert steer == 0.0
-    assert pan == 0.0
+    assert pan != 0.0  # scan moves pan
 
 
 def test_tick_picks_largest_detection() -> None:
@@ -142,3 +141,89 @@ def test_drive_full_when_pan_zero() -> None:
     drive, _, pan, _ = coord.desired_state.snapshot()
     assert pan == 0.0
     assert drive == 100.0  # full base speed when pan is 0
+
+
+def test_scan_advances_pan() -> None:
+    coord = _make_coordinator()
+    coord.on_button(BUTTON_A, True)
+
+    # No detections → scan should advance pan each tick
+    coord._tick()
+    _, _, pan1, _ = coord.desired_state.snapshot()
+    coord._tick()
+    _, _, pan2, _ = coord.desired_state.snapshot()
+    assert pan2 > pan1 > 0  # scanning rightward
+
+
+def test_scan_reverses_at_limits() -> None:
+    coord = _make_coordinator()
+    coord.on_button(BUTTON_A, True)
+
+    # Force position near the right limit
+    coord._scanning = True
+    coord._scan_position = 99.0
+    coord._scan_direction = 1.0
+
+    coord._tick()
+    assert coord._scan_direction == -1.0  # direction reversed
+    assert coord._scan_position == 100.0  # clamped at limit
+
+    # Next tick should move leftward
+    coord._tick()
+    assert coord._scan_position < 100.0
+
+
+def test_scan_to_tracking_resets_pid() -> None:
+    coord = _make_coordinator()
+    coord.on_button(BUTTON_A, True)
+
+    # Tick without detections to enter scanning mode
+    coord._tick()
+    assert coord._scanning
+
+    # Accumulate PID integral during scan ticks
+    coord._tick()
+    coord._tick()
+
+    # Now provide a detection → should reset PIDs and leave scan mode
+    det = Detection(x=0.4, y=0.2, w=0.2, h=0.5, score=0.9)
+    with coord.detector._lock:
+        coord.detector._detections = [det]
+
+    coord._tick()
+    assert not coord._scanning
+    assert coord._scan_position == 0.0
+    assert coord._scan_direction == 1.0
+    # PID was reset, so integral should be zero
+    assert coord.pan_tracker.pid._integral == 0.0
+    assert coord.follower.pid._integral == 0.0
+
+
+def test_deactivation_resets_scan_state() -> None:
+    coord = _make_coordinator()
+    coord.on_button(BUTTON_A, True)
+
+    # Enter scan mode
+    coord._tick()
+    coord._tick()
+    assert coord._scanning
+    assert coord._scan_position != 0.0
+
+    # Deactivate
+    coord.on_button(BUTTON_A, True)
+    assert not coord._scanning
+    assert coord._scan_position == 0.0
+    assert coord._scan_direction == 1.0
+
+
+def test_manual_override_resets_scan_state() -> None:
+    coord = _make_coordinator()
+    coord.on_button(BUTTON_A, True)
+
+    # Enter scan mode
+    coord._tick()
+    assert coord._scanning
+
+    coord.on_manual_input()
+    assert not coord._scanning
+    assert coord._scan_position == 0.0
