@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from shared_lib.detection.person_detector import PersonDetector
 from shared_lib.drive_state import DesiredDriveState
-from shared_lib.tracking import TargetFollower
+from shared_lib.tracking import PanTracker, TargetFollower
 
 BUTTON_A = 2
 
@@ -15,8 +15,11 @@ BUTTON_A = 2
 @dataclass
 class PersonFollowCoordinator:
     detector: PersonDetector
+    pan_tracker: PanTracker
     follower: TargetFollower
     desired_state: DesiredDriveState
+    base_drive_speed: float = 100.0
+    drive_exponent: float = 1.0
     update_hz: float = 20.0
 
     _active: bool = field(default=False, init=False, repr=False)
@@ -42,9 +45,11 @@ class PersonFollowCoordinator:
         if now_active:
             print("Person following: ON")
         else:
+            self.pan_tracker.reset()
             self.follower.reset()
             self.desired_state.set_drive_percent(0.0)
             self.desired_state.set_steer_percent(0.0)
+            self.desired_state.set_pan_percent(0.0)
             print("Person following: OFF")
 
     def on_manual_input(self) -> None:
@@ -52,7 +57,9 @@ class PersonFollowCoordinator:
             if not self._active:
                 return
             self._active = False
+        self.pan_tracker.reset()
         self.follower.reset()
+        self.desired_state.set_pan_percent(0.0)
         print("Person following: OFF (manual override)")
 
     def start(self) -> None:
@@ -85,6 +92,7 @@ class PersonFollowCoordinator:
         if not detections:
             self.desired_state.set_drive_percent(0.0)
             self.desired_state.set_steer_percent(0.0)
+            self.desired_state.set_pan_percent(0.0)
             return
 
         # Pick the largest detection (by area)
@@ -92,6 +100,14 @@ class PersonFollowCoordinator:
         center_x = best.x + best.w / 2.0
         deviation = (center_x - 0.5) * 2.0
 
-        steer, drive = self.follower.update(deviation)
+        # Stage 1: camera pan tracks person in image
+        pan_percent = self.pan_tracker.update(deviation)
+        self.desired_state.set_pan_percent(pan_percent)
+
+        # Stage 2: steering follows camera direction
+        steer, _ = self.follower.update(pan_percent / 100.0)
         self.desired_state.set_steer_percent(steer)
+
+        # Drive: reduce speed when camera is panned far
+        drive = self.base_drive_speed * (1.0 - abs(pan_percent) / 100.0) ** self.drive_exponent
         self.desired_state.set_drive_percent(drive)

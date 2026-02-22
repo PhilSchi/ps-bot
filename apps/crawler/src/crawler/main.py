@@ -8,7 +8,7 @@ from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
 from shared_lib.hardware import FusionMotor, FusionServo, FusionTelemetry, PanMount, SingleMotorChassis, VilibCameraServer
 from shared_lib.networking import RobotSocketServer, TelemetryStreamer
 from shared_lib.pid import PIDController
-from shared_lib.tracking import TargetFollower
+from shared_lib.tracking import PanTracker, TargetFollower
 
 from crawler.controller import CrawlerController
 from crawler.follow_coordinator import PersonFollowCoordinator
@@ -74,12 +74,19 @@ def main() -> None:
     controller = CrawlerController(chassis, desired_state, pan_mount)
     detector = PersonDetector(desired_state=desired_state)
 
-    pid = PIDController(kp=50.0, ki=3.0, kd=12.0, integral_limit=75.0)
-    follower = TargetFollower(pid=pid, drive_speed=100.0)
+    camera_pid = PIDController(kp=50.0, ki=3.0, kd=12.0, integral_limit=75.0)
+    pan_tracker = PanTracker(pid=camera_pid)
+
+    steer_pid = PIDController(kp=60.0, ki=2.0, kd=10.0, integral_limit=75.0)
+    follower = TargetFollower(pid=steer_pid)
+
     follow_coordinator = PersonFollowCoordinator(
         detector=detector,
+        pan_tracker=pan_tracker,
         follower=follower,
         desired_state=desired_state,
+        base_drive_speed=100.0,
+        drive_exponent=1.0,
     )
 
     updater = DesiredStateUpdater(
