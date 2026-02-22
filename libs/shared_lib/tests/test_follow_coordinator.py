@@ -41,9 +41,9 @@ def test_button_a_release_ignored() -> None:
 
 def test_non_a_button_ignored() -> None:
     coord = _make_coordinator()
-    coord.on_button(1, True)
+    coord.on_button(0, True)
     assert not coord.active
-    coord.on_button(2, True)
+    coord.on_button(1, True)
     assert not coord.active
 
 

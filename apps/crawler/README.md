@@ -16,7 +16,7 @@ The camera stream is served via Vilib on port 9000. Access from another device:
 ```
 http://<raspberry-pi-ip>:9000/mjpg
 ```
-
+    
 Or with VLC:
 
 ```bash

@@ -3,6 +3,8 @@ from .chassis import Chassis
 from .picarx_chassis import PicarxChassis
 from .gimbal import Gimbal
 from .gimbal_control import GimbalControl
+from .pan_control import PanControl
+from .pan_mount import PanMount
 from .robo_hat_servo import RoboHatServo
 from .picarx_motor import PicarxMotor
 from .fusion_motor import FusionMotor
@@ -23,6 +25,8 @@ __all__ = [
     "FusionTelemetry",
     "Gimbal",
     "GimbalControl",
+    "PanControl",
+    "PanMount",
     "RoboHatServo",
     "RoboHatTelemetry",
     "PicarxMotor",

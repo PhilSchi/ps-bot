@@ -5,7 +5,7 @@ import threading
 
 from shared_lib.detection import PersonDetector
 from shared_lib.drive_state import DesiredDriveState, DesiredStateUpdater
-from shared_lib.hardware import FusionMotor, FusionServo, FusionTelemetry, SingleMotorChassis, VilibCameraServer
+from shared_lib.hardware import FusionMotor, FusionServo, FusionTelemetry, PanMount, SingleMotorChassis, VilibCameraServer
 from shared_lib.networking import RobotSocketServer, TelemetryStreamer
 from shared_lib.pid import PIDController
 from shared_lib.tracking import TargetFollower
@@ -52,16 +52,30 @@ def build_chassis() -> SingleMotorChassis:
     return SingleMotorChassis(steering_servo, drive_motor)
 
 
+def build_pan_mount() -> PanMount:
+    pan_servo = FusionServo(
+        {
+            "channel": 1,
+            "min_angle": -60.0,
+            "max_angle": 60.0,
+            "zero_angle": 12.0,
+            "name": "camera-pan",
+        }
+    )
+    return PanMount(pan_servo)
+
+
 def main() -> None:
     args = build_parser().parse_args()
 
     chassis = build_chassis()
+    pan_mount = build_pan_mount()
     desired_state = DesiredDriveState()
-    controller = CrawlerController(chassis, desired_state)
+    controller = CrawlerController(chassis, desired_state, pan_mount)
     detector = PersonDetector(desired_state=desired_state)
 
-    pid = PIDController(kp=80.0, ki=5.0, kd=10.0, integral_limit=100.0)
-    follower = TargetFollower(pid=pid, drive_speed=30.0)
+    pid = PIDController(kp=50.0, ki=3.0, kd=12.0, integral_limit=75.0)
+    follower = TargetFollower(pid=pid, drive_speed=100.0)
     follow_coordinator = PersonFollowCoordinator(
         detector=detector,
         follower=follower,
@@ -135,6 +149,7 @@ def main() -> None:
         controller_thread.join()
         if camera_thread is not None:
             camera_thread.join()
+        pan_mount.center()
         chassis.stop()
 
 

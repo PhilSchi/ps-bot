@@ -9,7 +9,7 @@ from shared_lib.detection.person_detector import PersonDetector
 from shared_lib.drive_state import DesiredDriveState
 from shared_lib.tracking import TargetFollower
 
-BUTTON_A = 0
+BUTTON_A = 2
 
 
 @dataclass
